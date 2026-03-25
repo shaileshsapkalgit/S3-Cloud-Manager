@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>S3 Cloud Manager | Shailesh</title>
+    <style>
+        /* CSS: UI Design */
+        :root {
+            --primary: #007bff;
+            --danger: #dc3545;
+            --bg: #f4f7f9;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); margin: 0; padding: 20px; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        h2 { color: #333; text-align: center; border-bottom: 2px solid var(--primary); padding-bottom: 10px; }
+
+        .upload-section { background: #eef2f7; padding: 20px; border-radius: 8px; margin-bottom: 30px; display: flex; gap: 10px; align-items: center; }
+        input[type="text"] { flex: 1; padding: 10px; border: 1px solid #ccc; border-radius: 5px; }
+
+        button { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.3s; }
+        .btn-upload { background: var(--primary); color: white; }
+        .btn-upload:hover { background: #0056b3; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f8f9fa; }
+
+        .btn-download { background: #28a745; color: white; font-size: 12px; margin-right: 5px; }
+        .btn-delete { background: var(--danger); color: white; font-size: 12px; }
+        .status { margin-top: 15px; font-weight: bold; color: var(--primary); text-align: center; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>☁️ S3 Cloud Manager</h2>
+
+    <div class="upload-section">
+        <input type="text" id="fileName" placeholder="File Name (e.g., resume.txt)">
+        <input type="text" id="fileContent" placeholder="Enter text content to save...">
+        <button class="btn-upload" onclick="uploadToS3()">Upload to S3</button>
+    </div>
+
+    <div id="statusMsg" class="status"></div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>File Name</th>
+            <th>Actions</th>
+        </tr>
+        </thead>
+        <tbody id="fileTableBody">
+        </tbody>
+    </table>
+</div>
+
+<script>
+    /* JS: Logic to talk to Spring Boot API */
+    const API_BASE = "/api/files";
+
+    // 1. Upload File
+    async function uploadToS3() {
+        const name = document.getElementById('fileName').value;
+        const content = document.getElementById('fileContent').value;
+        const status = document.getElementById('statusMsg');
+
+        if(!name || !content) { alert("Please enter name and content"); return; }
+
+        status.innerText = "Uploading...";
+        try {
+            const response = await fetch(`${API_BASE}/upload?name=${name}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'text/plain' },
+                body: content
+            });
+            const result = await response.text();
+            status.innerText = result;
+            loadFileList(); // Refresh table
+        } catch (err) {
+            status.innerText = "Upload Failed!";
+        }
+    }
+
+    // 2. Delete File
+    async function deleteFromS3(name) {
+        if(!confirm(`Delete ${name}?`)) return;
+
+        await fetch(`${API_BASE}/delete/${name}`, { method: 'DELETE' });
+        alert("File Deleted");
+        loadFileList();
+    }
+
+    // 3. Download/Read File (Simplified for demo)
+    async function downloadFromS3(name) {
+        window.open(`${API_BASE}/download/${name}`, '_blank');
+    }
+
+    // 4. List Files (Note: Add this endpoint in your S3Service)
+    async function loadFileList() {
+        // For now, we manually add a row since we're building it step-by-step
+        // In real app: fetch from API and loop
+        console.log("Refreshing list...");
+    }
+
+    // Initial load
+    loadFileList();
+</script>
+
+</body>
+</html>
