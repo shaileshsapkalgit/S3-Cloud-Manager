@@ -9,6 +9,9 @@ module "eks" {
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
 
+  # सध्या हे false करा जेणेकरून localhost चा एरर येणार नाही
+  manage_aws_auth_configmap = false
+
   eks_managed_node_groups = {
     nodes = {
       min_size     = 1
