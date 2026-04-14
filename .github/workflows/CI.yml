@@ -26,11 +26,10 @@ jobs:
           terraform_version: 1.7.0
 
       # ३. Terraform Init & Apply (Note: single dash for -auto-approve)
-      - name: Terraform Init & Apply
-        working-directory: ./terraform
+      - name: Terraform Init and Apply
         run: |
-          terraform init
-          terraform apply -auto-approve -input=false   
+            terraform init
+            terraform apply -auto-approve
 
       # ४. Docker Image बनवून ECR ला पुश करणे
       - name: Login to Amazon ECR
