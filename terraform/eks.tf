@@ -9,8 +9,8 @@ module "eks" {
   subnet_ids                     = module.vpc.private_subnets
   cluster_endpoint_public_access = true
 
-  # सध्या हे false करा जेणेकरून localhost चा एरर येणार नाही
-  manage_aws_auth_configmap = false
+  # v19 मध्ये GitHub Actions ला अ‍ॅक्सेस देण्यासाठी हा ब्लॉक हवाच
+  manage_aws_auth_configmap = true
 
   eks_managed_node_groups = {
     nodes = {
@@ -20,4 +20,13 @@ module "eks" {
       instance_types = ["t3.small"]
     }
   }
+
+  # GitHub Runner ज्या IAM युजरने काम करतोय, त्याला इथे अ‍ॅड करा
+  aws_auth_users = [
+    {
+      userarn  = "arn:aws:iam::588319086414:user/terraform-aws"
+      username = "terraform-aws"
+      groups   = ["system:masters"]
+    }
+  ]
 }
