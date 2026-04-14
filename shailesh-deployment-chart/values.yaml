@@ -2,7 +2,7 @@
 replicaCount: 2
 
 image:
-  repository: 588319086414.dkr.ecr.eu-north-1.amazonaws.com/shailesh-repo
+  repository: 588319086414.dkr.ecr.us-west-1.amazonaws.com/shailesh-repo
   pullPolicy: IfNotPresent
   # हा टॅग आपण CI.yml मधून 'latest' सेट करतोय
   tag: ""
