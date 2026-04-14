@@ -11,6 +11,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      # १. AWS Credentials एकदाच सेट करा
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -18,27 +19,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ap-south-1
-
-      # ✅ ही नवीन स्टेप इथे ॲड कर
+      # २. टेराफॉर्म सेटअप
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: 1.7.0
 
-      # आता हे व्यवस्थित चालेल
+      # ३. Terraform Init & Apply (Note: single dash for -auto-approve)
       - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
           terraform init
-          terraform apply --auto-approve
+          terraform apply -auto-approve
 
-      # २. Docker Image बनवून ECR ला पुश करणे
+      # ४. Docker Image बनवून ECR ला पुश करणे
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -51,12 +45,12 @@ jobs:
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
           docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
 
-      # ३. EKS क्लस्टरशी कनेक्ट होणे
+      # ५. EKS क्लस्टरशी कनेक्ट होणे
       - name: Update Kubeconfig
         run: |
           aws eks update-kubeconfig --region ap-south-1 --name shailesh-terraform-cluster
 
-      # ४. Helm ने ॲप डिप्लॉय करणे
+      # ६. Helm ने ॲप डिप्लॉय करणे
       - name: Deploy with Helm
         run: |
           helm upgrade --install bank-app ./shailesh-bank-chart \
