@@ -37,22 +37,19 @@ jobs:
           docker build -t ${{ steps.login-ecr.outputs.registry }}/shailesh-repo:latest .
           docker push ${{ steps.login-ecr.outputs.registry }}/shailesh-repo:latest
 
-      - name: Update Kubeconfig
-        run: |
-          aws eks update-kubeconfig --region us-west-1 --name shailesh-s3-cluster
-
-      # हे नवीन: जर Credentials चा इश्यू आला, तर ही स्टेप त्याला Cluster Admin बनवेल
-      - name: Patch aws-auth for Runner Access
-        run: |
-          # जर आधीच अ‍ॅक्सेस असेल तर हे 'error' देईल, म्हणून '|| true' वापरलंय
-          kubectl get nodes || echo "Still no access, but proceeding to Helm..."
-
       - name: Deploy to EKS with Helm
         run: |
-          # Helm ला नक्की सांगतोय की क्लस्टर कुठे आहे
+          # १. Kubeconfig अपडेट करा
+          aws eks update-kubeconfig --region us-west-1 --name shailesh-s3-cluster
+          
+          # २. अ‍ॅक्सेस फिक्स करण्यासाठी 'Force context'
+          kubectl config set-context --current --namespace=default
+          
+          # ३. Helm डिप्लॉयमेंट (Credentials पुन्हा मागू नये म्हणून हा मार्ग)
           helm upgrade --install bank-app ./shailesh-deployment-chart \
             --set image.repository=${{ steps.login-ecr.outputs.registry }}/shailesh-repo \
             --set image.tag=latest \
             --set service.type=LoadBalancer \
             --set service.port=8080 \
+            --kubeconfig $HOME/.kube/config \
             --wait --timeout 5m
