@@ -12,7 +12,7 @@ provider "helm" {
 
 resource "helm_release" "bank_app" {
   name       = "shailesh-bank-app"
-  chart      = "./my-bank-app" # इथे तुझ्या हेल्म चार्ट फोल्डरचा पाथ दे
+  chart      = "./shailesh-bank-chart" # इथे तुझ्या हेल्म चार्ट फोल्डरचा पाथ दे
 
   set {
     name  = "service.port"

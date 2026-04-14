@@ -49,7 +49,7 @@ jobs:
       # ५. EKS क्लस्टरशी कनेक्ट होणे
       - name: Update Kubeconfig
         run: |
-          aws eks update-kubeconfig --region ap-south-1 --name shailesh-terraform-cluster
+          aws eks update-kubeconfig --region ap-south-1 --name shailesh-eks-v2
 
       # ६. Helm ने ॲप डिप्लॉय करणे
       - name: Deploy with Helm
