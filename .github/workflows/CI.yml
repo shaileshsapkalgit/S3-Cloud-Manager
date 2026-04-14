@@ -1,14 +1,12 @@
-name: Build and Push to ECR
+name: Full Stack DevOps Pipeline
 
 on:
   push:
     branches: [ "main" ]
 
 jobs:
-  deploy:
-    name: Build Image
+  build-and-deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -20,16 +18,34 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
+      # १. Terraform ने इन्फ्रास्ट्रक्चर तयार करणे (VPC, EKS Cluster)
+      - name: Terraform Init & Apply
+        working-directory: ./terraform
+        run: |
+          terraform init
+          terraform apply --auto-approve
+
+      # २. Docker Image बनवून ECR ला पुश करणे
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, and push image to Amazon ECR
+      - name: Build and Push Docker Image
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           ECR_REPOSITORY: s3-cloud-manager
-          IMAGE_TAG: latest
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
-          
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:latest .
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+
+      # ३. EKS क्लस्टरशी कनेक्ट होणे
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --region ap-south-1 --name shailesh-terraform-cluster
+
+      # ४. Helm ने ॲप डिप्लॉय करणे
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install bank-app ./shailesh-bank-chart \
+            --set image.repository=${{ steps.login-ecr.outputs.registry }}/s3-cloud-manager \
+            --set image.tag=latest
