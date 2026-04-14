@@ -18,7 +18,20 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ap-south-1
 
-      # १. Terraform ने इन्फ्रास्ट्रक्चर तयार करणे (VPC, EKS Cluster)
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ap-south-1
+
+      # ✅ ही नवीन स्टेप इथे ॲड कर
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.7.0
+
+      # आता हे व्यवस्थित चालेल
       - name: Terraform Init & Apply
         working-directory: ./terraform
         run: |
