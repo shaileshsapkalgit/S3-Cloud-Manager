@@ -17,4 +17,5 @@ module "eks" {
       instance_types = ["t3.small"]
     }
   }
+  create_cloudwatch_log_group = false
 }
