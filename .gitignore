@@ -31,3 +31,9 @@ build/
 
 ### VS Code ###
 .vscode/
+
+
+terraform/
+.terraform/
+*.exe
+*.tfstate*
