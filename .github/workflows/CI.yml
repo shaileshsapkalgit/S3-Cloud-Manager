@@ -26,7 +26,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: us-west-1
+          aws-region: us-east-1 # ✅ Correct Region
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -34,22 +34,19 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          docker build -t ${{ steps.login-ecr.outputs.registry }}/shailesh-repo:latest .
-          docker push ${{ steps.login-ecr.outputs.registry }}/shailesh-repo:latest
+          # नवीन ECR रिपॉझिटरी नाव वापरले आहे
+          docker build -t ${{ steps.login-ecr.outputs.registry }}/shailesh-new-ecr:latest .
+          docker push ${{ steps.login-ecr.outputs.registry }}/shailesh-new-ecr:latest
 
       - name: Deploy to EKS with Helm
         run: |
-          # १. Kubeconfig अपडेट करा
-          aws eks update-kubeconfig --region us-west-1 --name shailesh-s3-cluster
+          # १. नवीन क्लस्टर आणि रिजन अपडेट करा
+          aws eks update-kubeconfig --region us-east-1 --name shailesh-final-cluster
           
-          # २. अ‍ॅक्सेस फिक्स करण्यासाठी 'Force context'
-          kubectl config set-context --current --namespace=default
-          
-          # ३. Helm डिप्लॉयमेंट (Credentials पुन्हा मागू नये म्हणून हा मार्ग)
-          helm upgrade --install bank-app ./shailesh-deployment-chart \
-            --set image.repository=${{ steps.login-ecr.outputs.registry }}/shailesh-repo \
+          # २. Helm डिप्लॉयमेंट
+          # चार्टचा मार्ग आता ./helm असा आहे आणि अ‍ॅप्लिकेशनचे नाव s3-manager-app ठेवले आहे
+          helm upgrade --install s3-manager-app ./helm \
+            --set image.repository=${{ steps.login-ecr.outputs.registry }}/shailesh-new-ecr \
             --set image.tag=latest \
             --set service.type=LoadBalancer \
-            --set service.port=8080 \
-            --kubeconfig $HOME/.kube/config \
-            --wait --timeout 5m
+            --wait --timeout 10m
