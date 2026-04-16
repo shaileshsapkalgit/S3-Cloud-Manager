@@ -2,15 +2,22 @@ replicaCount: 1
 
 image:
   repository: 588319086414.dkr.ecr.us-east-1.amazonaws.com/shailesh-new-ecr
-  pullPolicy: Always # Always वापरणं चांगलं कारण आपण 'latest' टॅग वापरतोय
+  pullPolicy: Always
   tag: "latest"
+
+# ✅ हा ब्लॉक असायलाच हवा, नाहीतर तो वरचा एरर येतो
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
 
 service:
   type: LoadBalancer
   port: 80
   targetPort: 8080
 
-# ✅ हेल्थ चेकसाठी ८०८० पोर्ट आणि ४५ सेकंदांचा डिले दिला आहे
+# ✅ हेल्थ चेकसाठी ८०८० पोर्ट
 livenessProbe:
   httpGet:
     path: /
@@ -33,6 +40,13 @@ resources:
     cpu: 200m
     memory: 256Mi
 
+# डिफॉल्ट व्हॅल्यूज ज्या टेम्पलेट्सला हव्या असतात
+nameOverride: ""
+fullnameOverride: ""
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}
 ingress:
   enabled: false
 autoscaling:
