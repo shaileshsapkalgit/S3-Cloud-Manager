@@ -2,40 +2,28 @@ replicaCount: 1
 
 image:
   repository: 588319086414.dkr.ecr.us-east-1.amazonaws.com/shailesh-new-ecr
-  pullPolicy: IfNotPresent
-  tag: "latest" # आपण पाईपलाईन मधून 'latest' पाठवतोय
-
-imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  automount: true
-  annotations: {}
-  name: ""
-
-podAnnotations: {}
-podLabels: {}
-
-podSecurityContext: {}
-
-securityContext: {}
+  pullPolicy: Always # Always वापरणं चांगलं कारण आपण 'latest' टॅग वापरतोय
+  tag: "latest"
 
 service:
   type: LoadBalancer
   port: 80
   targetPort: 8080
 
-# ✅ हे प्रोब्स आता ८० ऐवजी थेट ८०८० पोर्ट चेक करतील
+# ✅ हेल्थ चेकसाठी ८०८० पोर्ट आणि ४५ सेकंदांचा डिले दिला आहे
 livenessProbe:
   httpGet:
     path: /
     port: 8080
+  initialDelaySeconds: 45
+  periodSeconds: 10
+
 readinessProbe:
   httpGet:
     path: /
     port: 8080
+  initialDelaySeconds: 45
+  periodSeconds: 10
 
 resources:
   limits:
@@ -47,12 +35,8 @@ resources:
 
 ingress:
   enabled: false
-
 autoscaling:
   enabled: false
-
-volumes: []
-volumeMounts: []
 nodeSelector: {}
 tolerations: []
 affinity: {}
